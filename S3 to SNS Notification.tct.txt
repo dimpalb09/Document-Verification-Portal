@@ -1,0 +1,37 @@
+import json
+import boto3
+
+sns = boto3.client('sns')
+
+# Replace with your SNS Topic ARN
+SNS_TOPIC_ARN = "arn:aws:sns:us-east-1:123456789012:YourSNSTopic"
+
+def lambda_handler(event, context):
+    try:
+        # Extract bucket and object info from the S3 event
+        bucket = event['Records'][0]['s3']['bucket']['name']
+        key = event['Records'][0]['s3']['object']['key']
+        
+        # Compose the message
+        message = f"A new document '{key}' has been uploaded to the bucket '{bucket}'."
+        
+        # Publish to SNS
+        response = sns.publish(
+            TopicArn=SNS_TOPIC_ARN,
+            Subject="New Document Uploaded",
+            Message=message
+        )
+        
+        print("Notification sent:", response)
+        
+        return {
+            'statusCode': 200,
+            'body': json.dumps('SNS notification sent successfully!')
+        }
+        
+    except Exception as e:
+        print("Error:", e)
+        return {
+            'statusCode': 500,
+            'body': json.dumps('Error processing the event')
+        }
